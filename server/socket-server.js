@@ -10,7 +10,30 @@ const prisma = require('./prisma/client');
 const server = http.createServer();
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "*",
+    origin: (origin, callback) => {
+      // Allow all Vercel preview and production URLs
+      if (!origin) {
+        // Allow requests with no origin (like mobile apps or curl)
+        return callback(null, true);
+      }
+      
+      // Allow any vercel.app domain
+      if (origin.includes('.vercel.app')) {
+        return callback(null, true);
+      }
+      
+      // Allow the configured FRONTEND_URL
+      if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+        return callback(null, true);
+      }
+      
+      // Allow localhost for development
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return callback(null, true);
+      }
+      
+      callback(new Error('Not allowed by CORS'));
+    },
     methods: ["GET", "POST"],
     credentials: true
   }
