@@ -10,3 +10,4 @@ export const getApiUrl = (endpoint) => {
   const baseUrl = API_URL.replace(/\/$/, '');
   return `${baseUrl}/${cleanEndpoint}`;
 };
+
