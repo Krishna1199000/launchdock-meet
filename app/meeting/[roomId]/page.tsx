@@ -33,7 +33,7 @@ export default function MeetingRoom() {
     const [showChatPanel, setShowChatPanel] = useState(false);
     const [captionsEnabled, setCaptionsEnabled] = useState(false);
     const [chatMessages, setChatMessages] = useState<
-        { name: string; text: string; createdAt: string }
+        { name: string; text: string; createdAt: string }[]
     >([]);
     const [chatInput, setChatInput] = useState('');
     const [handRaised, setHandRaised] = useState(false);
