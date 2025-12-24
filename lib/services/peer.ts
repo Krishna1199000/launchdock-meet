@@ -33,11 +33,21 @@ class PeerService {
         }
     }
 
-    async setLocalDescription(ans: RTCSessionDescriptionInit): Promise<void> {
+    // Apply remote answer on the caller side.
+    // Guard against applying it multiple times which causes InvalidStateError.
+    async applyRemoteAnswer(ans: RTCSessionDescriptionInit): Promise<void> {
         const peerConnection = this.getPeer();
-        if (peerConnection) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(ans));
+        if (!peerConnection) return;
+
+        // If we already have a remote description and are stable, no need to set again
+        if (
+            peerConnection.signalingState === 'stable' &&
+            peerConnection.currentRemoteDescription
+        ) {
+            return;
         }
+
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(ans));
     }
     
     async getOffer(): Promise<RTCSessionDescriptionInit | undefined> {
@@ -59,3 +69,4 @@ class PeerService {
 
 const peerService = new PeerService();
 export default peerService;
+

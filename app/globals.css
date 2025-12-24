@@ -14,31 +14,113 @@ body {
   overflow-x: hidden;
 }
 
+/* LaunchDock-inspired dark theme */
+:root {
+  --foreground-rgb: 226, 232, 240; /* slate-200 */
+  --foreground-strong-rgb: 248, 250, 252; /* slate-50 */
+  --background-start-rgb: 2, 6, 23; /* slate-950 */
+  --background-end-rgb: 15, 23, 42; /* slate-900 */
+  --accent-cyan: 56, 189, 248; /* sky-400 */
+  --accent-purple: 216, 180, 254; /* violet-300 */
+}
+
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
+    radial-gradient(circle at top right, rgba(216, 180, 254, 0.18), transparent 55%),
+    radial-gradient(circle at bottom, rgba(56, 189, 248, 0.12), transparent 55%),
+    #020617;
+  background-size: 160% 160%;
+  animation: backgroundPulse 18s ease-in-out infinite alternate;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
 }
 
 a {
   color: inherit;
   text-decoration: none;
-}
-
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --foreground-rgb: 226, 232, 240;
+    --foreground-strong-rgb: 248, 250, 252;
+    --background-start-rgb: 2, 6, 23;
+    --background-end-rgb: 15, 23, 42;
   }
 }
+
+/* Page + section animations */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes backgroundPulse {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+.page-fade-in {
+  animation: pageFadeIn 0.7s ease-out both;
+}
+
+.hero-slide-up {
+  animation: heroSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.card-float {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.card-float:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.95);
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+.btn-animated {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-animated::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 0 0, rgba(248, 250, 252, 0.14), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.btn-animated:hover::after {
+  opacity: 1;
+}
+
+

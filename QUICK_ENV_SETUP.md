@@ -37,3 +37,4 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - **Frontend pages** (`app/signin/page.tsx`, etc.) use `NEXT_PUBLIC_SOCKET_URL`
 - **API routes** (`app/api/auth/signin/route.ts`, etc.) use `DATABASE_URL` and `JWT_SECRET`
 - Everything is in one Next.js app!
+

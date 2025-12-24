@@ -12,7 +12,10 @@ interface User {
 
 export default function Dashboard() {
     const [user, setUser] = useState<User | null>(null);
-    const [meetingLink, setMeetingLink] = useState('');
+    // Link generated when you create a new meeting (used only for sharing)
+    const [createdMeetingLink, setCreatedMeetingLink] = useState('');
+    // Raw input when joining a meeting (can be full URL or just ID)
+    const [joinInput, setJoinInput] = useState('');
     const [copied, setCopied] = useState(false);
     const router = useRouter();
     const socket = useSocket();
@@ -33,7 +36,7 @@ export default function Dashboard() {
     const handleNewMeeting = () => {
         const meetingId = generateMeetingId();
         const link = typeof window !== 'undefined' ? `${window.location.origin}/meeting/${meetingId}` : '';
-        setMeetingLink(link);
+        setCreatedMeetingLink(link);
         
         // Join the room immediately
         if (socket && user) {
@@ -44,7 +47,10 @@ export default function Dashboard() {
 
     const handleJoinMeeting = (e: React.FormEvent) => {
         e.preventDefault();
-        const meetingId = meetingLink.split('/').pop();
+        const value = joinInput.trim();
+        if (!value) return;
+
+        const meetingId = value.includes('/') ? value.split('/').pop() : value;
         if (meetingId && socket && user) {
             socket.emit('room:join', { email: user.email, room: meetingId, userId: user.id });
             router.push(`/meeting/${meetingId}`);
@@ -52,8 +58,8 @@ export default function Dashboard() {
     };
 
     const handleCopyLink = () => {
-        if (meetingLink) {
-            navigator.clipboard.writeText(meetingLink);
+        if (createdMeetingLink) {
+            navigator.clipboard.writeText(createdMeetingLink);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         }
@@ -70,33 +76,53 @@ export default function Dashboard() {
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px' }}>
+        <div className="page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#020617', padding: '24px' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0', marginBottom: '40px', color: 'white' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>VideoMeet</h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <span style={{ fontSize: '1rem' }}>Welcome, {user.name}</span>
+                <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    padding: '32px 0', 
+                    marginBottom: '48px', 
+                    color: 'rgb(248,250,252)',
+                    borderBottom: '1px solid rgba(51,65,85,0.5)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div
+                            style={{
+                                width: 44,
+                                height: 44,
+                                borderRadius: 12,
+                                background:
+                                    'radial-gradient(circle at 20% 20%, rgba(56,189,248,0.9), rgba(37,99,235,0.9))',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 8px 24px rgba(56,189,248,0.3)',
+                            }}
+                        >
+                            <span style={{ fontSize: 22 }}>🚀</span>
+                        </div>
+                        <div>
+                            <h1 style={{ fontSize: '1.85rem', fontWeight: 700, margin: 0, lineHeight: 1.2 }}>VideoDock</h1>
+                            <span style={{ fontSize: '0.85rem', color: 'rgb(148,163,184)' }}>Dashboard</span>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+                        <span style={{ fontSize: '1rem', color: 'rgb(226,232,240)' }}>Welcome, <span style={{ fontWeight: 600, color: 'rgb(56,189,248)' }}>{user.name}</span></span>
                         <button 
                             onClick={handleSignOut} 
                             style={{ 
-                                padding: '10px 20px', 
+                                padding: '10px 24px', 
                                 fontSize: '0.9rem', 
                                 fontWeight: 600, 
-                                border: '2px solid white', 
-                                borderRadius: '8px', 
+                                borderRadius: '999px', 
                                 cursor: 'pointer', 
-                                backgroundColor: 'transparent', 
-                                color: 'white',
-                                transition: 'all 0.3s'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.backgroundColor = 'white';
-                                e.currentTarget.style.color = '#667eea';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.color = 'white';
+                                backgroundImage: 'linear-gradient(135deg, rgb(56,189,248), rgb(59,130,246))', 
+                                color: '#020617',
+                                boxShadow: '0 8px 20px rgba(56,189,248,0.3)',
+                                border: 'none',
                             }}
                         >
                             Sign Out
@@ -107,17 +133,18 @@ export default function Dashboard() {
                 {/* Content */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
                     {/* New Meeting Card */}
-                    <div style={{ 
-                        background: 'white', 
+                    <div className="card-float" style={{ 
+                        background: 'radial-gradient(circle at top, rgba(56,189,248,0.18), transparent 60%) #020617', 
                         borderRadius: '12px', 
                         padding: '30px', 
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        boxShadow: '0 24px 70px rgba(15,23,42,0.9)',
+                        border: '1px solid rgba(51,65,85,0.9)',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '20px'
                     }}>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#333' }}>Start a new meeting</h2>
-                        <p style={{ color: '#666', margin: 0, lineHeight: '1.6' }}>Create a new meeting and share the link with others</p>
+                        <h2 style={{ fontSize: '1.4rem', fontWeight: 600, margin: 0, color: 'rgb(248,250,252)' }}>Start a new meeting</h2>
+                        <p style={{ color: 'rgb(148,163,184)', margin: 0, lineHeight: '1.6' }}>Create a new meeting and share the link with others</p>
                         <button 
                             onClick={handleNewMeeting} 
                             style={{ 
@@ -125,32 +152,31 @@ export default function Dashboard() {
                                 fontSize: '1rem', 
                                 fontWeight: 600, 
                                 border: 'none', 
-                                borderRadius: '8px', 
+                                borderRadius: '999px', 
                                 cursor: 'pointer', 
-                                backgroundColor: '#667eea', 
-                                color: 'white',
-                                transition: 'background-color 0.3s',
-                                marginTop: 'auto'
+                                backgroundImage: 'linear-gradient(135deg, rgb(56,189,248), rgb(59,130,246))', 
+                                color: '#020617',
+                                marginTop: 'auto',
+                                boxShadow: '0 12px 30px rgba(56,189,248,0.35)',
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#5568d3'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#667eea'}
                         >
                             New Meeting
                         </button>
                     </div>
 
                     {/* Join Meeting Card */}
-                    <div style={{ 
-                        background: 'white', 
+                    <div className="card-float" style={{ 
+                        background: 'radial-gradient(circle at top, rgba(129,140,248,0.22), transparent 60%) #020617', 
                         borderRadius: '12px', 
                         padding: '30px', 
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        boxShadow: '0 24px 70px rgba(15,23,42,0.9)',
+                        border: '1px solid rgba(51,65,85,0.9)',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '20px'
                     }}>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#333' }}>Join a meeting</h2>
-                        <p style={{ color: '#666', margin: 0, lineHeight: '1.6' }}>Enter a meeting link or ID to join</p>
+                        <h2 style={{ fontSize: '1.4rem', fontWeight: 600, margin: 0, color: 'rgb(248,250,252)' }}>Join a meeting</h2>
+                        <p style={{ color: 'rgb(148,163,184)', margin: 0, lineHeight: '1.6' }}>Enter a meeting link or ID to join</p>
                         <form 
                             onSubmit={handleJoinMeeting} 
                             style={{ 
@@ -162,19 +188,21 @@ export default function Dashboard() {
                         >
                             <input
                                 type="text"
-                                value={meetingLink}
-                                onChange={(e) => setMeetingLink(e.target.value)}
+                                value={joinInput}
+                                onChange={(e) => setJoinInput(e.target.value)}
                                 placeholder="Paste meeting link or enter meeting ID"
                                 style={{ 
                                     padding: '12px', 
                                     fontSize: '1rem', 
-                                    border: '2px solid #e0e0e0', 
-                                    borderRadius: '8px',
+                                    border: '1px solid rgba(51,65,85,0.9)', 
+                                    borderRadius: '10px',
                                     outline: 'none',
-                                    transition: 'border-color 0.3s'
+                                    transition: 'border-color 0.3s',
+                                    backgroundColor: 'rgba(15,23,42,0.9)',
+                                    color: 'rgb(226,232,240)',
                                 }}
-                                onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
-                                onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
+                                onFocus={(e) => e.currentTarget.style.borderColor = 'rgb(56,189,248)'}
+                                onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(51,65,85,0.9)'}
                             />
                             <button 
                                 type="submit" 
@@ -183,14 +211,12 @@ export default function Dashboard() {
                                     fontSize: '1rem', 
                                     fontWeight: 600, 
                                     border: 'none', 
-                                    borderRadius: '8px', 
+                                    borderRadius: '999px', 
                                     cursor: 'pointer', 
-                                    backgroundColor: '#764ba2', 
-                                    color: 'white',
-                                    transition: 'background-color 0.3s'
+                                    backgroundImage: 'linear-gradient(135deg, rgb(56,189,248), rgb(59,130,246))', 
+                                    color: '#020617',
+                                    boxShadow: '0 12px 30px rgba(56,189,248,0.35)',
                                 }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#5d3a7a'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#764ba2'}
                             >
                                 Join
                             </button>
@@ -198,28 +224,29 @@ export default function Dashboard() {
                     </div>
 
                     {/* Share Link Card */}
-                    {meetingLink && (
-                        <div style={{ 
-                            background: 'white', 
+                    {createdMeetingLink && (
+                        <div className="card-float" style={{ 
+                            background: 'rgba(15,23,42,0.98)', 
                             borderRadius: '12px', 
                             padding: '30px', 
-                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                            boxShadow: '0 24px 70px rgba(15,23,42,0.9)',
+                            border: '1px solid rgba(51,65,85,0.9)',
                             gridColumn: '1 / -1'
                         }}>
-                            <h3 style={{ fontSize: '1.3rem', fontWeight: 600, margin: '0 0 20px 0', color: '#333' }}>Share this meeting link</h3>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 20px 0', color: 'rgb(248,250,252)' }}>Share this meeting link</h3>
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <input
                                     type="text"
-                                    value={meetingLink}
+                                    value={createdMeetingLink}
                                     readOnly
                                     style={{ 
                                         flex: 1,
                                         padding: '12px', 
                                         fontSize: '1rem', 
-                                        border: '2px solid #e0e0e0', 
-                                        borderRadius: '8px',
-                                        backgroundColor: '#f5f5f5',
-                                        color: '#333'
+                                    border: '1px solid rgba(51,65,85,0.9)', 
+                                    borderRadius: '10px',
+                                    backgroundColor: 'rgba(15,23,42,0.9)',
+                                    color: 'rgb(226,232,240)'
                                     }}
                                 />
                                 <button 
@@ -229,12 +256,12 @@ export default function Dashboard() {
                                         fontSize: '1rem', 
                                         fontWeight: 600, 
                                         border: 'none', 
-                                        borderRadius: '8px', 
+                                        borderRadius: '999px', 
                                         cursor: 'pointer', 
-                                        backgroundColor: copied ? '#4caf50' : '#667eea', 
-                                        color: 'white',
-                                        transition: 'background-color 0.3s',
-                                        whiteSpace: 'nowrap'
+                                        backgroundImage: 'linear-gradient(135deg, rgb(56,189,248), rgb(59,130,246))', 
+                                        color: '#020617',
+                                        whiteSpace: 'nowrap',
+                                        boxShadow: '0 8px 20px rgba(56,189,248,0.3)',
                                     }}
                                 >
                                     {copied ? '✓ Copied!' : 'Copy Link'}

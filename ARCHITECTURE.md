@@ -84,3 +84,4 @@ npm run socket:dev       # Runs on http://localhost:3001
 ```
 
 The Next.js app handles all REST API calls, and Socket.io handles WebSocket connections for real-time video chat signaling.
+

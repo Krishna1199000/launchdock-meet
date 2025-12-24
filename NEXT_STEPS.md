@@ -65,3 +65,4 @@ Make sure `.env.local` is set up with:
 ## 🎯 Current Structure
 
 Your project is now a proper Next.js 14 App Router application with TypeScript. The structure is clean and ready for development!
+

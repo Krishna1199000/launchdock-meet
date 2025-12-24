@@ -49,27 +49,80 @@ const roomScreenSharing = new Map();
 
 io.on('connection', (socket) => {
   console.log(`Socket connected`, socket.id);
+
+  // Helper to admit a user socket into a room and notify others
+  const admitToRoom = async (targetSocket, { email, room, userId, userName, isHost, meeting }) => {
+    if (!targetSocket) return;
+
+    targetSocket.join(room);
+
+    const roomSockets = await io.in(room).fetchSockets();
+    const otherSockets = roomSockets.filter((s) => s.id !== targetSocket.id);
+
+    for (const otherSocket of otherSockets) {
+      const otherEmail = socketIdToEmailMap.get(otherSocket.id);
+      if (otherEmail) {
+        try {
+          const otherUser = await prisma.user.findUnique({
+            where: { email: otherEmail },
+            select: { id: true, name: true },
+          });
+
+          if (otherUser && meeting) {
+            const isOtherHost = meeting.hostId === otherUser.id;
+            io.to(targetSocket.id).emit('user:already:in:room', {
+              email: otherEmail,
+              id: otherSocket.id,
+              name: otherUser.name || otherEmail.split('@')[0],
+              isHost: isOtherHost,
+            });
+          }
+        } catch (error) {
+          console.error('Error getting user info:', error);
+        }
+      }
+    }
+
+    io.to(room).emit('user:joined', { email, id: targetSocket.id, name: userName, isHost });
+    io.to(targetSocket.id).emit('room:join', { email, room, userId, name: userName, isHost });
+  };
   
   socket.on('room:join', async (data) => {
-    const { email, room, userId } = data;
+    const { email, room, userId, name } = data;
     emailToSocketIdMap.set(email, socket.id);
     socketIdToEmailMap.set(socket.id, email);
     
-    let userName = email;
+    let userName = name || email?.split('@')[0] || 'Guest';
     let isHost = false;
+    let meeting;
     
     try {
-      let meeting = await prisma.meeting.findUnique({
+      meeting = await prisma.meeting.findUnique({
         where: { roomId: room }
       });
       
       if (!meeting) {
         if (userId) {
+          // Ensure the host user actually exists before creating a meeting,
+          // otherwise Prisma will throw a foreign-key error (P2003).
+          const hostUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true },
+          });
+
+          if (!hostUser) {
+            console.error('Host user not found for meeting creation', { userId, room });
+            io.to(socket.id).emit('room:join:denied', {
+              message: 'Unable to start meeting. User not found in database.',
+            });
+            return;
+          }
+
           meeting = await prisma.meeting.create({
             data: {
               roomId: room,
-              hostId: userId
-            }
+              hostId: userId,
+            },
           });
           isHost = true;
         }
@@ -115,45 +168,119 @@ io.on('connection', (socket) => {
           where: { id: userId },
           select: { name: true }
         });
-        if (user) {
+        if (user?.name) {
           userName = user.name;
         }
       }
     } catch (error) {
       console.error('Error handling room join:', error);
     }
-    
-    socket.join(room);
-    
-    const roomSockets = await io.in(room).fetchSockets();
-    const otherSockets = roomSockets.filter(s => s.id !== socket.id);
-    
-    for (const otherSocket of otherSockets) {
-      const otherEmail = socketIdToEmailMap.get(otherSocket.id);
-      if (otherEmail) {
-        try {
-          const otherUserId = await prisma.user.findUnique({
-            where: { email: otherEmail },
-            select: { id: true, name: true }
+
+    // For existing meetings and non-hosts, ask host to approve entry
+    if (meeting && !isHost && userId) {
+      try {
+        const hostUser = await prisma.user.findUnique({
+          where: { id: meeting.hostId },
+          select: { email: true },
+        });
+        const hostSocketId = hostUser ? emailToSocketIdMap.get(hostUser.email) : null;
+
+        if (hostSocketId && hostSocketId !== socket.id) {
+          io.to(hostSocketId).emit('room:join:request', {
+            socketId: socket.id,
+            userId,
+            name: userName,
           });
-          
-          if (otherUserId && meeting) {
-            const isOtherHost = meeting.hostId === otherUserId.id;
-            io.to(socket.id).emit('user:already:in:room', {
-              email: otherEmail,
-              id: otherSocket.id,
-              name: otherUserId.name || otherEmail,
-              isHost: isOtherHost
-            });
-          }
-        } catch (error) {
-          console.error('Error getting user info:', error);
+          io.to(socket.id).emit('room:join:waiting', {
+            message: 'Waiting for host to admit you to the meeting...',
+          });
+          return;
         }
+      } catch (error) {
+        console.error('Error sending join request to host:', error);
       }
     }
-    
-    io.to(room).emit('user:joined', { email, id: socket.id, name: userName, isHost });
-    io.to(socket.id).emit('room:join', { ...data, isHost });
+
+    await admitToRoom(socket, { email, room, userId, userName, isHost, meeting });
+  });
+
+  // Host decides whether to admit a participant
+  socket.on('room:join:decision', async ({ room, requesterSocketId, userId, allow, name }) => {
+    try {
+      const meeting = await prisma.meeting.findUnique({
+        where: { roomId: room },
+      });
+
+      if (!meeting) return;
+
+      // Ensure only host can decide
+      const requesterEmail = socketIdToEmailMap.get(socket.id);
+      if (!requesterEmail) return;
+
+      const requesterUser = await prisma.user.findUnique({
+        where: { email: requesterEmail },
+      });
+
+      if (!requesterUser || requesterUser.id !== meeting.hostId) {
+        return;
+      }
+
+      const participant = await prisma.meetingParticipant.findUnique({
+        where: {
+          meetingId_userId: {
+            meetingId: meeting.id,
+            userId,
+          },
+        },
+      });
+
+      if (!allow) {
+        if (participant) {
+          await prisma.meetingParticipant.update({
+            where: { id: participant.id },
+            data: {
+              kickCount: participant.kickCount + 1,
+            },
+          });
+        }
+
+        io.to(requesterSocketId).emit('room:join:denied', {
+          message: 'Host declined your request to join this meeting.',
+        });
+        return;
+      }
+
+      if (participant && participant.kickCount >= 3) {
+        io.to(requesterSocketId).emit('room:join:denied', {
+          message: 'You have been removed from this meeting too many times. Access denied.',
+        });
+        return;
+      }
+
+      const email = socketIdToEmailMap.get(requesterSocketId);
+      if (!email) return;
+
+      const userRecord = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      });
+
+      const userName = userRecord?.name || name || email.split('@')[0] || 'Guest';
+
+      const targetSocket = io.sockets.sockets.get(requesterSocketId);
+      if (!targetSocket) return;
+
+      await admitToRoom(targetSocket, {
+        email,
+        room,
+        userId,
+        userName,
+        isHost: false,
+        meeting,
+      });
+    } catch (error) {
+      console.error('Error handling room join decision:', error);
+    }
   });
 
   socket.on('user:call', ({ to, offer }) => {
@@ -284,6 +411,36 @@ io.on('connection', (socket) => {
       }
     }
   });
+
+  // Simple in-meeting chat messages
+  socket.on('chat:message', ({ room, name, text }) => {
+    if (!room || !text) return;
+    io.to(room).emit('chat:message', {
+      name,
+      text,
+      createdAt: new Date().toISOString(),
+    });
+  });
+
+  // Emoji reactions (lightweight, ephemeral)
+  socket.on('reaction:emoji', ({ room, name, emoji }) => {
+    if (!room || !emoji) return;
+    io.to(room).emit('reaction:emoji', {
+      name,
+      emoji,
+      createdAt: new Date().toISOString(),
+    });
+  });
+
+  // Hand raise status per participant
+  socket.on('hand:raise', ({ room, socketId, isRaised, name }) => {
+    if (!room || !socketId) return;
+    io.to(room).emit('hand:raise', {
+      socketId,
+      isRaised: !!isRaised,
+      name,
+    });
+  });
 });
 
 const PORT = process.env.PORT || 3001;
@@ -307,3 +464,4 @@ process.on('SIGTERM', async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
+
