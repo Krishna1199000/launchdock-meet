@@ -86,8 +86,12 @@ export default function Dashboard() {
                     padding: '32px 0', 
                     marginBottom: '48px', 
                     color: 'rgb(248,250,252)',
-                    borderBottom: '1px solid rgba(51,65,85,0.5)'
-                }}>
+                    borderBottom: '1px solid rgba(51,65,85,0.5)',
+                    flexWrap: 'wrap',
+                    gap: '16px',
+                }}
+                className="responsive-header"
+                >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div
                             style={{
@@ -109,8 +113,8 @@ export default function Dashboard() {
                             <span style={{ fontSize: '0.85rem', color: 'rgb(148,163,184)' }}>Dashboard</span>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-                        <span style={{ fontSize: '1rem', color: 'rgb(226,232,240)' }}>Welcome, <span style={{ fontWeight: 600, color: 'rgb(56,189,248)' }}>{user.name}</span></span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 'clamp(0.85rem, 2vw, 1rem)', color: 'rgb(226,232,240)' }}>Welcome, <span style={{ fontWeight: 600, color: 'rgb(56,189,248)' }}>{user.name}</span></span>
                         <button 
                             onClick={handleSignOut} 
                             style={{ 
@@ -131,7 +135,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Content */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(20px, 4vw, 30px)' }}>
                     {/* New Meeting Card */}
                     <div className="card-float" style={{ 
                         background: 'radial-gradient(circle at top, rgba(56,189,248,0.18), transparent 60%) #020617', 
@@ -143,8 +147,8 @@ export default function Dashboard() {
                         flexDirection: 'column',
                         gap: '20px'
                     }}>
-                        <h2 style={{ fontSize: '1.4rem', fontWeight: 600, margin: 0, color: 'rgb(248,250,252)' }}>Start a new meeting</h2>
-                        <p style={{ color: 'rgb(148,163,184)', margin: 0, lineHeight: '1.6' }}>Create a new meeting and share the link with others</p>
+                        <h2 style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 600, margin: 0, color: 'rgb(248,250,252)' }}>Start a new meeting</h2>
+                        <p style={{ color: 'rgb(148,163,184)', margin: 0, lineHeight: '1.6', fontSize: 'clamp(0.85rem, 2vw, 1rem)' }}>Create a new meeting and share the link with others</p>
                         <button 
                             onClick={handleNewMeeting} 
                             style={{ 
@@ -175,8 +179,8 @@ export default function Dashboard() {
                         flexDirection: 'column',
                         gap: '20px'
                     }}>
-                        <h2 style={{ fontSize: '1.4rem', fontWeight: 600, margin: 0, color: 'rgb(248,250,252)' }}>Join a meeting</h2>
-                        <p style={{ color: 'rgb(148,163,184)', margin: 0, lineHeight: '1.6' }}>Enter a meeting link or ID to join</p>
+                        <h2 style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 600, margin: 0, color: 'rgb(248,250,252)' }}>Join a meeting</h2>
+                        <p style={{ color: 'rgb(148,163,184)', margin: 0, lineHeight: '1.6', fontSize: 'clamp(0.85rem, 2vw, 1rem)' }}>Enter a meeting link or ID to join</p>
                         <form 
                             onSubmit={handleJoinMeeting} 
                             style={{ 
@@ -234,15 +238,16 @@ export default function Dashboard() {
                             gridColumn: '1 / -1'
                         }}>
                             <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 20px 0', color: 'rgb(248,250,252)' }}>Share this meeting link</h3>
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                 <input
                                     type="text"
                                     value={createdMeetingLink}
                                     readOnly
                                     style={{ 
-                                        flex: 1,
+                                        flex: '1 1 200px',
+                                        minWidth: '200px',
                                         padding: '12px', 
-                                        fontSize: '1rem', 
+                                        fontSize: 'clamp(0.85rem, 2vw, 1rem)', 
                                     border: '1px solid rgba(51,65,85,0.9)', 
                                     borderRadius: '10px',
                                     backgroundColor: 'rgba(15,23,42,0.9)',

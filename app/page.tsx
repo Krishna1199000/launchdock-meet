@@ -8,7 +8,7 @@ export default function Home() {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        padding: '24px 32px',
+        padding: 'clamp(16px, 4vw, 32px)',
       }}
     >
       {/* Top nav with logo (LaunchDock-like) */}
@@ -25,6 +25,7 @@ export default function Home() {
           rowGap: '16px',
           flexWrap: 'wrap',
         }}
+        className="responsive-header"
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div
@@ -72,7 +73,9 @@ export default function Home() {
             gap: '48px',
             fontSize: '0.95rem',
             color: 'rgb(148, 163, 184)',
+            flexWrap: 'wrap',
           }}
+          className="responsive-nav"
         >
           <Link
             href="#features"
@@ -182,7 +185,7 @@ export default function Home() {
 
           <h1
             style={{
-              fontSize: '3.6rem',
+              fontSize: 'clamp(2rem, 5vw, 3.6rem)',
               lineHeight: 1.1,
               fontWeight: 800,
               marginBottom: 16,
@@ -204,10 +207,11 @@ export default function Home() {
 
           <p
             style={{
-              fontSize: '1.05rem',
+              fontSize: 'clamp(0.9rem, 2vw, 1.05rem)',
               maxWidth: 560,
               margin: '0 auto 36px',
               color: 'rgb(148, 163, 184)',
+              padding: '0 16px',
             }}
           >
             VideoDock is your creative partner for stunning, reliable video calls,

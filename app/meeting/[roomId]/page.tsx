@@ -512,12 +512,12 @@ export default function MeetingRoom() {
             }}
         >
             {/* Header */}
-            <div style={{ padding: '20px', borderBottom: '1px solid rgba(30,64,175,0.8)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'radial-gradient(circle at top, rgba(56,189,248,0.14), transparent 60%) rgba(15,23,42,0.95)' }}>
-                <h1 style={{ margin: 0, fontSize: '1.3rem', color: 'rgb(248,250,252)' }}>Meeting Room: {roomId}</h1>
+            <div style={{ padding: 'clamp(12px, 3vw, 20px)', borderBottom: '1px solid rgba(30,64,175,0.8)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'radial-gradient(circle at top, rgba(56,189,248,0.14), transparent 60%) rgba(15,23,42,0.95)', flexWrap: 'wrap', gap: '12px' }}>
+                <h1 style={{ margin: 0, fontSize: 'clamp(0.9rem, 3vw, 1.3rem)', color: 'rgb(248,250,252)', wordBreak: 'break-word' }}>Meeting: {roomId}</h1>
                 <button 
                     onClick={handleLeave}
                     style={{
-                        padding: '10px 20px',
+                        padding: 'clamp(10px, 2vw, 12px) clamp(16px, 3vw, 20px)',
                         backgroundImage: 'linear-gradient(135deg, rgb(56,189,248), rgb(59,130,246))',
                         color: '#020617',
                         border: 'none',
@@ -525,6 +525,8 @@ export default function MeetingRoom() {
                         cursor: 'pointer',
                         fontWeight: 600,
                         boxShadow: '0 8px 20px rgba(56,189,248,0.3)',
+                        fontSize: 'clamp(0.85rem, 2vw, 1rem)',
+                        minHeight: '44px',
                     }}
                 >
                     Leave Meeting
@@ -536,11 +538,13 @@ export default function MeetingRoom() {
                 style={{
                     flex: 1,
                     display: 'flex',
-                    gap: '20px',
-                    padding: '12px 20px',
+                    flexDirection: 'column',
+                    gap: 'clamp(12px, 2vw, 20px)',
+                    padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 20px)',
                     position: 'relative',
                     overflow: 'hidden',
                 }}
+                className="video-container-responsive"
             >
                 {/* Waiting overlay when non-host is requesting access */}
                 {waitingForApproval && (
@@ -582,13 +586,15 @@ export default function MeetingRoom() {
                             top: 0,
                             bottom: 0,
                             left: 0,
-                            width: 280,
+                            width: 'clamp(280px, 90vw, 320px)',
+                            maxWidth: '90vw',
                             backgroundColor: 'rgba(15,23,42,0.98)',
                             borderRight: '1px solid rgba(30,64,175,0.7)',
                             padding: '16px 16px 80px',
                             overflowY: 'auto',
                             zIndex: 10,
                         }}
+                        className="side-panel-mobile"
                     >
                         <div>
                             <h2
@@ -677,7 +683,8 @@ export default function MeetingRoom() {
                             top: 0,
                             bottom: 0,
                             right: 0,
-                            width: 320,
+                            width: 'clamp(280px, 90vw, 320px)',
+                            maxWidth: '90vw',
                             backgroundColor: 'rgba(15,23,42,0.98)',
                             borderLeft: '1px solid rgba(30,64,175,0.7)',
                             padding: '16px 16px 80px',
@@ -687,6 +694,7 @@ export default function MeetingRoom() {
                             flexDirection: 'column',
                             gap: 12,
                         }}
+                        className="side-panel-mobile"
                     >
                         <h2
                             style={{
@@ -1042,19 +1050,20 @@ export default function MeetingRoom() {
                 <div
                     style={{
                         width: localAsOverlay
-                            ? 260
+                            ? 'clamp(200px, 30vw, 260px)'
                             : isAloneInCall && !isScreenSharing
                             ? '100%'
-                            : '300px',
+                            : 'clamp(250px, 40vw, 300px)',
                         maxWidth: isScreenSharing
-                            ? 260
+                            ? 'clamp(200px, 30vw, 260px)'
                             : isAloneInCall && !isScreenSharing
                             ? '100%'
-                            : '300px',
-                        height: localAsOverlay ? 150 : undefined,
+                            : 'clamp(250px, 40vw, 300px)',
+                        height: localAsOverlay ? 'clamp(120px, 20vh, 150px)' : undefined,
+                        minHeight: !localAsOverlay && !isAloneInCall && !isScreenSharing ? '200px' : undefined,
                         position: localAsOverlay ? 'absolute' : 'relative',
-                        bottom: localAsOverlay ? 24 : undefined,
-                        right: localAsOverlay ? 24 : undefined,
+                        bottom: localAsOverlay ? 'clamp(12px, 2vh, 24px)' : undefined,
+                        right: localAsOverlay ? 'clamp(12px, 2vw, 24px)' : undefined,
                         background: '#020617',
                         borderRadius: '16px',
                         overflow: 'hidden',
@@ -1063,6 +1072,7 @@ export default function MeetingRoom() {
                         flex: isAloneInCall && !isScreenSharing ? 1 : 'initial',
                         zIndex: localAsOverlay ? 6 : 1,
                     }}
+                    className="video-tile-responsive"
                     onClick={() => {
                         if (isScreenSharing) {
                             setLocalPinnedWhenScreen((prev) => !prev);
@@ -1157,14 +1167,16 @@ export default function MeetingRoom() {
             {/* Controls footer - Google Meet style */}
             <div
                 style={{
-                    padding: '10px 24px',
+                    padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 24px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     borderTop: '1px solid rgba(30,64,175,0.8)',
                     backgroundColor: 'rgba(15,23,42,0.98)',
-                    gap: 24,
+                    gap: 'clamp(8px, 2vw, 24px)',
+                    flexWrap: 'wrap',
                 }}
+                className="controls-footer-responsive"
             >
                 {/* Left: time + meeting id */}
                 <div
@@ -1172,14 +1184,18 @@ export default function MeetingRoom() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        fontSize: '0.9rem',
+                        fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
                         color: 'rgb(148,163,184)',
                         whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: '100%',
                     }}
+                    className="meeting-info-responsive"
                 >
                     <span>{currentTime}</span>
                     <span style={{ opacity: 0.5 }}>|</span>
-                    <span style={{ fontFamily: 'monospace', letterSpacing: '0.04em' }}>{roomId}</span>
+                    <span style={{ fontFamily: 'monospace', letterSpacing: '0.04em', fontSize: 'clamp(0.7rem, 1.8vw, 0.85rem)' }}>{roomId}</span>
                 </div>
 
                 {/* Center: controls */}
@@ -1188,22 +1204,27 @@ export default function MeetingRoom() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 12,
+                        gap: 'clamp(8px, 1.5vw, 12px)',
                         flex: 1,
+                        flexWrap: 'wrap',
+                        minWidth: 0,
                     }}
+                    className="controls-center-responsive"
                 >
                     {/* Mute / Unmute */}
                     <button
                         onClick={toggleMute}
                         style={{
-                            width: 44,
-                            height: 44,
+                            width: 'clamp(44px, 8vw, 48px)',
+                            height: 'clamp(44px, 8vw, 48px)',
+                            minWidth: '44px',
+                            minHeight: '44px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
                             backgroundColor: 'rgba(15,23,42,0.9)',
                             color: 'rgb(248,250,252)',
-                            fontSize: '1.2rem',
+                            fontSize: 'clamp(1rem, 2.5vw, 1.2rem)',
                         }}
                         aria-label={muted ? 'Unmute microphone' : 'Mute microphone'}
                     >
@@ -1214,14 +1235,16 @@ export default function MeetingRoom() {
                     <button
                         onClick={toggleVideo}
                         style={{
-                            width: 44,
-                            height: 44,
+                            width: 'clamp(44px, 8vw, 48px)',
+                            height: 'clamp(44px, 8vw, 48px)',
+                            minWidth: '44px',
+                            minHeight: '44px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
                             backgroundColor: 'rgba(15,23,42,0.9)',
                             color: 'rgb(248,250,252)',
-                            fontSize: '1.2rem',
+                            fontSize: 'clamp(1rem, 2.5vw, 1.2rem)',
                         }}
                         aria-label={videoOff ? 'Turn camera on' : 'Turn camera off'}
                     >
@@ -1232,14 +1255,16 @@ export default function MeetingRoom() {
                     <button
                         onClick={toggleScreenShare}
                         style={{
-                            width: 44,
-                            height: 44,
+                            width: 'clamp(44px, 8vw, 48px)',
+                            height: 'clamp(44px, 8vw, 48px)',
+                            minWidth: '44px',
+                            minHeight: '44px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
                             backgroundColor: 'rgba(15,23,42,0.9)',
                             color: 'rgb(248,250,252)',
-                            fontSize: '1.2rem',
+                            fontSize: 'clamp(1rem, 2.5vw, 1.2rem)',
                         }}
                         aria-label={isScreenSharing ? 'Stop sharing screen' : 'Share screen'}
                     >
@@ -1250,14 +1275,16 @@ export default function MeetingRoom() {
                     <button
                         onClick={handleEmojiReaction}
                         style={{
-                            width: 44,
-                            height: 44,
+                            width: 'clamp(44px, 8vw, 48px)',
+                            height: 'clamp(44px, 8vw, 48px)',
+                            minWidth: '44px',
+                            minHeight: '44px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
                             backgroundColor: 'rgba(15,23,42,0.9)',
                             color: 'rgb(248,250,252)',
-                            fontSize: '1.2rem',
+                            fontSize: 'clamp(1rem, 2.5vw, 1.2rem)',
                         }}
                         aria-label="Reactions"
                     >
@@ -1268,8 +1295,10 @@ export default function MeetingRoom() {
                     <button
                         onClick={() => setCaptionsEnabled((prev) => !prev)}
                         style={{
-                            width: 44,
-                            height: 44,
+                            width: 'clamp(44px, 8vw, 48px)',
+                            height: 'clamp(44px, 8vw, 48px)',
+                            minWidth: '44px',
+                            minHeight: '44px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
@@ -1277,7 +1306,7 @@ export default function MeetingRoom() {
                                 ? 'rgba(56,189,248,0.2)'
                                 : 'rgba(15,23,42,0.9)',
                             color: 'rgb(248,250,252)',
-                            fontSize: '0.9rem',
+                            fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
                             fontWeight: 600,
                         }}
                         aria-label="Captions"
@@ -1289,8 +1318,10 @@ export default function MeetingRoom() {
                     <button
                         onClick={handleToggleHand}
                         style={{
-                            width: 44,
-                            height: 44,
+                            width: 'clamp(44px, 8vw, 48px)',
+                            height: 'clamp(44px, 8vw, 48px)',
+                            minWidth: '44px',
+                            minHeight: '44px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
@@ -1298,7 +1329,7 @@ export default function MeetingRoom() {
                                 ? 'rgba(56,189,248,0.2)'
                                 : 'rgba(15,23,42,0.9)',
                             color: 'rgb(248,250,252)',
-                            fontSize: '1.2rem',
+                            fontSize: 'clamp(1rem, 2.5vw, 1.2rem)',
                         }}
                         aria-label="Raise hand"
                     >
@@ -1309,14 +1340,16 @@ export default function MeetingRoom() {
                     <button
                         onClick={handleLeave}
                         style={{
-                            width: 52,
-                            height: 52,
+                            width: 'clamp(48px, 9vw, 52px)',
+                            height: 'clamp(48px, 9vw, 52px)',
+                            minWidth: '48px',
+                            minHeight: '48px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
                             backgroundColor: '#ef4444',
                             color: 'white',
-                            fontSize: '1.4rem',
+                            fontSize: 'clamp(1.2rem, 3vw, 1.4rem)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -1332,20 +1365,24 @@ export default function MeetingRoom() {
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 12,
+                        gap: 'clamp(8px, 1.5vw, 12px)',
+                        flexWrap: 'wrap',
                     }}
+                    className="controls-right-responsive"
                 >
                     <button
                         onClick={() => setShowParticipantsPanel((prev) => !prev)}
                         style={{
-                            width: 32,
-                            height: 32,
+                            width: 'clamp(36px, 7vw, 40px)',
+                            height: 'clamp(36px, 7vw, 40px)',
+                            minWidth: '36px',
+                            minHeight: '36px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
                             backgroundColor: 'transparent',
                             color: 'rgb(148,163,184)',
-                            fontSize: '1.1rem',
+                            fontSize: 'clamp(1rem, 2.5vw, 1.1rem)',
                         }}
                         aria-label="Info"
                     >
@@ -1353,14 +1390,16 @@ export default function MeetingRoom() {
                     </button>
                     <button
                         style={{
-                            width: 32,
-                            height: 32,
+                            width: 'clamp(36px, 7vw, 40px)',
+                            height: 'clamp(36px, 7vw, 40px)',
+                            minWidth: '36px',
+                            minHeight: '36px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
                             backgroundColor: 'transparent',
                             color: 'rgb(148,163,184)',
-                            fontSize: '1.1rem',
+                            fontSize: 'clamp(1rem, 2.5vw, 1.1rem)',
                         }}
                         aria-label="Participants"
                     >
@@ -1369,14 +1408,16 @@ export default function MeetingRoom() {
                     <button
                         onClick={() => setShowChatPanel((prev) => !prev)}
                         style={{
-                            width: 32,
-                            height: 32,
+                            width: 'clamp(36px, 7vw, 40px)',
+                            height: 'clamp(36px, 7vw, 40px)',
+                            minWidth: '36px',
+                            minHeight: '36px',
                             borderRadius: 9999,
                             border: 'none',
                             cursor: 'pointer',
                             backgroundColor: 'transparent',
                             color: 'rgb(148,163,184)',
-                            fontSize: '1.1rem',
+                            fontSize: 'clamp(1rem, 2.5vw, 1.1rem)',
                         }}
                         aria-label="Chat"
                     >

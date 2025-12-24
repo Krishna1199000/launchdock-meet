@@ -123,4 +123,136 @@ a {
   opacity: 1;
 }
 
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  
+  /* Adjust padding for mobile */
+  .page-fade-in {
+    padding: 16px !important;
+  }
+  
+  /* Touch-friendly buttons */
+  button, a[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent text overflow */
+  * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Responsive header */
+  .responsive-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    margin-bottom: 40px !important;
+  }
+  
+  /* Responsive nav */
+  .responsive-nav {
+    gap: 16px !important;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  /* Hide some nav items on mobile */
+  .responsive-nav a:not(:last-child):not(:nth-last-child(2)) {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+  
+  /* Smaller padding on very small screens */
+  .page-fade-in {
+    padding: 12px !important;
+  }
+}
+
+/* Meeting Room Mobile Responsive Styles */
+@media (max-width: 768px) {
+  /* Video container stacks vertically on mobile */
+  .video-container-responsive {
+    flex-direction: column !important;
+  }
+  
+  /* Video tiles take full width on mobile */
+  .video-tile-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 250px !important;
+  }
+  
+  /* Side panels become full-screen overlays on mobile */
+  .side-panel-mobile {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    left: 0 !important;
+    right: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+  
+  /* Controls footer stacks on mobile */
+  .controls-footer-responsive {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  /* Meeting info wraps on mobile */
+  .meeting-info-responsive {
+    white-space: normal !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  /* Controls center wraps on mobile */
+  .controls-center-responsive {
+    width: 100%;
+    justify-content: center;
+    order: 2;
+  }
+  
+  /* Controls right wraps on mobile */
+  .controls-right-responsive {
+    width: 100%;
+    justify-content: center;
+    order: 3;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Even smaller controls on very small screens */
+  .controls-center-responsive {
+    gap: 6px !important;
+  }
+  
+  .controls-right-responsive {
+    gap: 6px !important;
+  }
+}
+
+/* Prevent horizontal scroll */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Touch-friendly interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  button, a {
+    -webkit-tap-highlight-color: rgba(56, 189, 248, 0.3);
+  }
+}
 

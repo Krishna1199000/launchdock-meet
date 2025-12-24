@@ -64,7 +64,10 @@ export default function SignIn() {
                     margin: '0 auto 48px',
                     padding: '24px 0',
                     color: 'rgb(248, 250, 252)',
+                    flexWrap: 'wrap',
+                    gap: '16px',
                 }}
+                className="responsive-header"
             >
                 <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit' }}>
                     <div
@@ -106,7 +109,7 @@ export default function SignIn() {
                     style={{
                         background:
                             'radial-gradient(circle at top, rgba(56,189,248,0.15), transparent 55%) #020617',
-                        padding: '40px',
+                        padding: 'clamp(24px, 5vw, 40px)',
                         borderRadius: '18px',
                         boxShadow: '0 24px 80px rgba(15,23,42,0.9)',
                         maxWidth: '420px',
@@ -116,7 +119,7 @@ export default function SignIn() {
                 >
                     <h1
                         style={{
-                            fontSize: '2rem',
+                            fontSize: 'clamp(1.5rem, 4vw, 2rem)',
                             fontWeight: 700,
                             marginBottom: '10px',
                             color: 'rgb(248,250,252)',
@@ -124,7 +127,7 @@ export default function SignIn() {
                     >
                         Sign In
                     </h1>
-                    <p style={{ color: 'rgb(148,163,184)', marginBottom: '30px' }}>
+                    <p style={{ color: 'rgb(148,163,184)', marginBottom: '30px', fontSize: 'clamp(0.85rem, 2vw, 1rem)' }}>
                         Welcome back to VideoDock
                     </p>
 

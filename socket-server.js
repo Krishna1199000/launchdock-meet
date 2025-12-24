@@ -11,7 +11,18 @@ const prisma = new PrismaClient({
   log: ['query', 'info', 'warn', 'error'],
 });
 
-const server = http.createServer();
+const server = http.createServer((req, res) => {
+  // Health check endpoint for Render
+  if (req.url === '/health' || req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'socket-server' }));
+    return;
+  }
+  // For all other routes, return 404
+  res.writeHead(404);
+  res.end();
+});
+
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
@@ -26,9 +37,29 @@ const io = new Server(server, {
         return callback(null, true);
       }
       
-      // Allow the configured FRONTEND_URL
+      // Allow the configured FRONTEND_URL (exact match)
       if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
         return callback(null, true);
+      }
+      
+      // Allow FRONTEND_URL domain variations (with/without www, with/without https)
+      if (process.env.FRONTEND_URL) {
+        try {
+          const frontendUrl = new URL(process.env.FRONTEND_URL);
+          const originUrl = new URL(origin);
+          
+          // Normalize domains by removing 'www.' prefix for comparison
+          const normalizeDomain = (hostname) => hostname.replace(/^www\./, '');
+          const frontendDomain = normalizeDomain(frontendUrl.hostname);
+          const originDomain = normalizeDomain(originUrl.hostname);
+          
+          // Allow if domains match (ignoring www prefix)
+          if (frontendDomain === originDomain) {
+            return callback(null, true);
+          }
+        } catch (e) {
+          // If URL parsing fails, continue to other checks
+        }
       }
       
       // Allow localhost for development

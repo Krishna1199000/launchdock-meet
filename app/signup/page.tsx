@@ -74,7 +74,10 @@ export default function SignUp() {
                     margin: '0 auto 48px',
                     padding: '24px 0',
                     color: 'rgb(248, 250, 252)',
+                    flexWrap: 'wrap',
+                    gap: '16px',
                 }}
+                className="responsive-header"
             >
                 <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit' }}>
                     <div
@@ -111,9 +114,9 @@ export default function SignUp() {
             </header>
 
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="card-float" style={{ background: 'radial-gradient(circle at top, rgba(129,140,248,0.2), transparent 55%) #020617', padding: '40px', borderRadius: '18px', boxShadow: '0 24px 80px rgba(15,23,42,0.9)', maxWidth: '440px', width: '100%', border: '1px solid rgba(51,65,85,0.9)' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '10px', color: 'rgb(248,250,252)' }}>Sign Up</h1>
-                    <p style={{ color: 'rgb(148,163,184)', marginBottom: '30px' }}>Create your VideoDock account</p>
+                <div className="card-float" style={{ background: 'radial-gradient(circle at top, rgba(129,140,248,0.2), transparent 55%) #020617', padding: 'clamp(24px, 5vw, 40px)', borderRadius: '18px', boxShadow: '0 24px 80px rgba(15,23,42,0.9)', maxWidth: '440px', width: '100%', border: '1px solid rgba(51,65,85,0.9)' }}>
+                    <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '10px', color: 'rgb(248,250,252)' }}>Sign Up</h1>
+                    <p style={{ color: 'rgb(148,163,184)', marginBottom: '30px', fontSize: 'clamp(0.85rem, 2vw, 1rem)' }}>Create your VideoDock account</p>
 
                     {error && <div style={{ backgroundColor: '#fee', color: '#c33', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>{error}</div>}
 
