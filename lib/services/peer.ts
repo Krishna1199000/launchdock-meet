@@ -23,38 +23,38 @@ class PeerService {
         return this.getPeer();
     }
 
-    async getAnswer(offer: RTCSessionDescriptionInit): Promise<RTCSessionDescriptionInit | undefined> {
-        const peerConnection = this.getPeer();
-        if (peerConnection) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-            const ans = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(new RTCSessionDescription(ans));
+    async getAnswer(offer: RTCSessionDescriptionInit, peerConnection?: RTCPeerConnection): Promise<RTCSessionDescriptionInit | undefined> {
+        const pc = peerConnection || this.getPeer();
+        if (pc) {
+            await pc.setRemoteDescription(new RTCSessionDescription(offer));
+            const ans = await pc.createAnswer();
+            await pc.setLocalDescription(new RTCSessionDescription(ans));
             return ans;
         }
     }
 
     // Apply remote answer on the caller side.
     // Guard against applying it multiple times which causes InvalidStateError.
-    async applyRemoteAnswer(ans: RTCSessionDescriptionInit): Promise<void> {
-        const peerConnection = this.getPeer();
-        if (!peerConnection) return;
+    async applyRemoteAnswer(ans: RTCSessionDescriptionInit, peerConnection?: RTCPeerConnection): Promise<void> {
+        const pc = peerConnection || this.getPeer();
+        if (!pc) return;
 
         // If we already have a remote description and are stable, no need to set again
         if (
-            peerConnection.signalingState === 'stable' &&
-            peerConnection.currentRemoteDescription
+            pc.signalingState === 'stable' &&
+            pc.currentRemoteDescription
         ) {
             return;
         }
 
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(ans));
+        await pc.setRemoteDescription(new RTCSessionDescription(ans));
     }
     
-    async getOffer(): Promise<RTCSessionDescriptionInit | undefined> {
-        const peerConnection = this.getPeer();
-        if (peerConnection) {
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
+    async getOffer(peerConnection?: RTCPeerConnection): Promise<RTCSessionDescriptionInit | undefined> {
+        const pc = peerConnection || this.getPeer();
+        if (pc) {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(new RTCSessionDescription(offer));
             return offer;
         }
     }

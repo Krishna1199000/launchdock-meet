@@ -95,21 +95,46 @@ export default function MeetingRoom() {
         // Handle user joined - defined inside useEffect to avoid dependency issues
         const handleUserJoined = async (remoteUser: RemoteUser) => {
             if (!socket || !localStreamRef.current) return;
+            
+            // Skip if we already have a peer connection for this user
+            if (peersRef.current.has(remoteUser.id)) {
+                console.log('Peer connection already exists for', remoteUser.id);
+                return;
+            }
 
             const peerConnection = peerService.createPeerConnection();
             peersRef.current.set(remoteUser.id, peerConnection);
 
-            // Add local stream tracks
+            // Add local stream tracks (both audio and video)
             localStreamRef.current.getTracks().forEach((track) => {
-                peerConnection.addTrack(track, localStreamRef.current!);
+                if (track.kind === 'audio' || track.kind === 'video') {
+                    peerConnection.addTrack(track, localStreamRef.current!);
+                }
             });
 
-            // Handle remote stream
+            // Handle remote stream - support multiple users
             peerConnection.ontrack = (event) => {
-                remoteStreamRef.current = event.streams[0];
-                if (remoteVideoRef.current) {
-                    remoteVideoRef.current.srcObject = remoteStreamRef.current;
+                const remoteStream = event.streams[0];
+                if (!remoteStream) return;
+                
+                // For now, use the first remote user's stream for the main video
+                // In the future, you can extend this to support multiple video tiles
+                if (!remoteStreamRef.current || remoteUsers.length === 0) {
+                    remoteStreamRef.current = remoteStream;
+                    if (remoteVideoRef.current) {
+                        remoteVideoRef.current.srcObject = remoteStream;
+                        // Ensure audio is enabled
+                        remoteVideoRef.current.muted = false;
+                        remoteVideoRef.current.volume = 1.0;
+                    }
                 }
+                
+                // Update remote users state to trigger re-render
+                setRemoteUsers((prev) => {
+                    const existing = prev.find(u => u.id === remoteUser.id);
+                    if (existing) return prev;
+                    return [...prev, remoteUser];
+                });
             };
 
             // Handle ICE candidates
@@ -122,10 +147,24 @@ export default function MeetingRoom() {
                 }
             };
 
+            // Handle connection state changes
+            peerConnection.onconnectionstatechange = () => {
+                console.log(`Peer connection state for ${remoteUser.id}:`, peerConnection.connectionState);
+                if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
+                    // Try to reconnect or clean up
+                    peerConnection.close();
+                    peersRef.current.delete(remoteUser.id);
+                }
+            };
+
             // Create and send offer
-            const offer = await peerService.getOffer();
-            if (offer) {
-                socket.emit('user:call', { to: remoteUser.id, offer });
+            try {
+                const offer = await peerService.getOffer(peerConnection);
+                if (offer) {
+                    socket.emit('user:call', { to: remoteUser.id, offer });
+                }
+            } catch (error) {
+                console.error('Error creating offer:', error);
             }
         };
 
@@ -154,32 +193,72 @@ export default function MeetingRoom() {
         });
 
         socket.on('incomming:call', async ({ from, offer }: { from: string; offer: RTCSessionDescriptionInit }) => {
+            // Skip if we already have a peer connection for this user
+            if (peersRef.current.has(from)) {
+                console.log('Peer connection already exists for incoming call from', from);
+                return;
+            }
+
             const peerConnection = peerService.createPeerConnection();
             peersRef.current.set(from, peerConnection);
 
-            // Add local stream tracks
+            // Add local stream tracks (both audio and video)
             localStreamRef.current?.getTracks().forEach((track) => {
-                peerConnection.addTrack(track, localStreamRef.current!);
+                if (track.kind === 'audio' || track.kind === 'video') {
+                    peerConnection.addTrack(track, localStreamRef.current!);
+                }
             });
 
             // Handle remote stream
             peerConnection.ontrack = (event) => {
-                remoteStreamRef.current = event.streams[0];
+                const remoteStream = event.streams[0];
+                if (!remoteStream) return;
+                
+                remoteStreamRef.current = remoteStream;
                 if (remoteVideoRef.current) {
-                    remoteVideoRef.current.srcObject = remoteStreamRef.current;
+                    remoteVideoRef.current.srcObject = remoteStream;
+                    // Ensure audio is enabled
+                    remoteVideoRef.current.muted = false;
+                    remoteVideoRef.current.volume = 1.0;
                 }
             };
 
-            const ans = await peerService.getAnswer(offer);
-            if (ans) {
-                socket.emit('call:accepted', { to: from, ans });
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice:candidate', {
+                        to: from,
+                        candidate: event.candidate
+                    });
+                }
+            };
+
+            // Handle connection state changes
+            peerConnection.onconnectionstatechange = () => {
+                console.log(`Peer connection state for ${from}:`, peerConnection.connectionState);
+                if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
+                    peerConnection.close();
+                    peersRef.current.delete(from);
+                }
+            };
+
+            try {
+                const ans = await peerService.getAnswer(offer, peerConnection);
+                if (ans) {
+                    socket.emit('call:accepted', { to: from, ans });
+                }
+            } catch (error) {
+                console.error('Error creating answer:', error);
             }
         });
 
         socket.on(
             'call:accepted',
             async ({ from, ans }: { from: string; ans: RTCSessionDescriptionInit }) => {
-                await peerService.applyRemoteAnswer(ans);
+                const peerConnection = peersRef.current.get(from);
+                if (peerConnection) {
+                    await peerService.applyRemoteAnswer(ans, peerConnection);
+                }
             },
         );
 
@@ -204,6 +283,31 @@ export default function MeetingRoom() {
 
         socket.on('room:join:waiting', () => {
             setWaitingForApproval(true);
+        });
+
+        socket.on('room:join:accepted', () => {
+            setWaitingForApproval(false);
+            // User has been accepted, they can now participate
+            // The server will emit 'room:join' which will trigger the normal join flow
+        });
+
+        socket.on('room:join', (data: { email?: string; room?: string; userId?: string; name?: string; isHost?: boolean }) => {
+            // Clear waiting state when room:join is received (after acceptance)
+            setWaitingForApproval(false);
+            // If this is after acceptance, ensure we have media streams
+            if (!localStreamRef.current && navigator.mediaDevices) {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then((stream) => {
+                        cameraPreviewStreamRef.current = stream;
+                        if (localVideoRef.current) {
+                            localVideoRef.current.srcObject = cameraPreviewStreamRef.current;
+                        }
+                        localStreamRef.current = new MediaStream(stream.getTracks());
+                    })
+                    .catch((error) => {
+                        console.error('Error accessing media devices after acceptance:', error);
+                    });
+            }
         });
 
         socket.on('room:join:denied', (payload: { message?: string }) => {
@@ -264,6 +368,8 @@ export default function MeetingRoom() {
             socket.off('reaction:emoji');
             socket.off('hand:raise');
             socket.off('room:join:waiting');
+            socket.off('room:join:accepted');
+            socket.off('room:join');
             socket.off('room:join:denied');
             socket.off('room:join:request');
         };
@@ -1025,6 +1131,7 @@ export default function MeetingRoom() {
                             ref={remoteVideoRef}
                             autoPlay
                             playsInline
+                            muted={false}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                         {remoteUsers[0] && (

@@ -309,6 +309,12 @@ io.on('connection', (socket) => {
         isHost: false,
         meeting,
       });
+      
+      // Explicitly notify the accepted user that they've been admitted
+      io.to(requesterSocketId).emit('room:join:accepted', {
+        room,
+        message: 'You have been admitted to the meeting.',
+      });
     } catch (error) {
       console.error('Error handling room join decision:', error);
     }
